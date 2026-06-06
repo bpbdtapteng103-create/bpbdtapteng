@@ -4,87 +4,82 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>BPBD Kabupaten Tapanuli Tengah</title>
-<link rel="stylesheet" href="style.css">
+<style>
+body{font-family:Arial,sans-serif;margin:20px;}
+h1{color:#d35400;}
+input{width:100%;padding:10px;margin-bottom:15px;box-sizing:border-box;}
+table{width:100%;border-collapse:collapse;}
+th{background:#d35400;color:white;padding:10px;}
+td{padding:8px;border:1px solid #ddd;}
+tr:nth-child(even){background:#f2f2f2;}
+.info{margin-bottom:15px;font-weight:bold;}
+</style>
 </head>
 <body>
-
 <h1>BPBD Kabupaten Tapanuli Tengah</h1>
 <h3>Portal Data Rumah Rusak</h3>
 
-<input type="text" id="cari" placeholder="Cari Nama, NIK, Desa atau Kecamatan" aria-label="Pencarian data">
-
-<div class="info">
-Jumlah Data : <span id="jumlah">0</span>
-</div>
-
-<div id="loading" style="display:none;">Memuat data...</div>
+<input type="text" id="cari" placeholder="Cari Nama, NIK, Desa, Kecamatan, atau Keterangan">
+<div class="info">Jumlah Data : <span id="jumlah">0</span></div>
 
 <table>
 <thead>
 <tr>
-<th scope="col">NIK</th>
-<th scope="col">Nama</th>
-<th scope="col">Desa/Kelurahan</th>
-<th scope="col">Kecamatan</th>
-<th scope="col">Tingkat Kerusakan</th>
+  <th>NIK</th>
+  <th>Nama</th>
+  <th>Desa/Kelurahan</th>
+  <th>Kecamatan</th>
+  <th>Tingkat Kerusakan</th>
+  <th>Keterangan</th>
 </tr>
 </thead>
 <tbody id="data"></tbody>
 </table>
 
 <script>
-const api = "https://script.google.com/macros/s/AKfycbwWr0kwzFJgyt-_aSTXCCBg8YlG99aT_1HPWVXsOw6O7t_n_41gVBTeihVjdNIyhUgD7g/exec";
+// GANTI dengan URL Web App Google Apps Script kamu
+const api = "URL_EXEC_APPS_SCRIPT"; 
+
 let semuaData = [];
 
 function tampilkanData(data){
-    const html = data.map(item => `
-        <tr>
-            <td>${item.Nik || ""}</td>
-            <td>${item.Nama || ""}</td>
-            <td>${item["Desa/kelurahan"] || ""}</td>
-            <td>${item.Kecamatan || ""}</td>
-            <td>${item["Tingkat kerusakan"] || ""}</td>
-        </tr>
-    `).join("");
-    document.getElementById("data").innerHTML = html;
-    document.getElementById("jumlah").textContent = data.length;
+  let html = data.map(item => `
+    <tr>
+      <td>${item.Nik || ""}</td>
+      <td>${item.Nama || ""}</td>
+      <td>${item["Desa/kelurahan"] || ""}</td>
+      <td>${item.Kecamatan || ""}</td>
+      <td>${item["Tingkat kerusakan"] || ""}</td>
+      <td>${item.Keterangan || ""}</td>
+    </tr>`).join("");
+  document.getElementById("data").innerHTML = html;
+  document.getElementById("jumlah").textContent = data.length;
 }
 
 async function ambilData(){
-    document.getElementById("loading").style.display = "block";
-    try {
-        const response = await fetch(api);
-        semuaData = await response.json();
-        tampilkanData(semuaData);
-    } catch (error) {
-        console.error(error);
-        alert("Gagal mengambil data");
-    } finally {
-        document.getElementById("loading").style.display = "none";
-    }
+  try {
+    const response = await fetch(api);
+    semuaData = await response.json();
+    tampilkanData(semuaData);
+  } catch (error) {
+    console.error(error);
+    alert("Gagal mengambil data");
+  }
 }
 
-function debounce(fn, delay){
-    let timeout;
-    return function(...args){
-        clearTimeout(timeout);
-        timeout = setTimeout(() => fn.apply(this, args), delay);
-    };
-}
-
-document.getElementById("cari").addEventListener("keyup", debounce(function(){
-    const kata = this.value.toLowerCase();
-    const hasil = semuaData.filter(item =>
-        String(item.Nama || "").toLowerCase().includes(kata) ||
-        String(item.Nik || "").toLowerCase().includes(kata) ||
-        String(item["Desa/kelurahan"] || "").toLowerCase().includes(kata) ||
-        String(item.Kecamatan || "").toLowerCase().includes(kata)
-    );
-    tampilkanData(hasil);
-}, 300));
+document.getElementById("cari").addEventListener("keyup", function(){
+  const kata = this.value.toLowerCase();
+  const hasil = semuaData.filter(item =>
+    String(item.Nama || "").toLowerCase().includes(kata) ||
+    String(item.Nik || "").toLowerCase().includes(kata) ||
+    String(item["Desa/kelurahan"] || "").toLowerCase().includes(kata) ||
+    String(item.Kecamatan || "").toLowerCase().includes(kata) ||
+    String(item.Keterangan || "").toLowerCase().includes(kata)
+  );
+  tampilkanData(hasil);
+});
 
 ambilData();
 </script>
-
 </body>
 </html>
