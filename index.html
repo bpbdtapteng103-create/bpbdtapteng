@@ -44,20 +44,41 @@ button{padding:8px 12px;margin:2px;}
   <button id="prev">Prev</button>
   <span id="pageInfo"></span>
   <button id="next">Next</button>
+  <select id="perPage">
+    <option value="25">25</option>
+    <option value="50" selected>50</option>
+    <option value="100">100</option>
+  </select> baris per halaman
 </div>
 
 <script>
-const api = "https://script.google.com/macros/s/AKfycbwfnC4VJG3vE4n_dV50YwEc3aUFaplyN1eUTsHaARnyh7vqhpF73xuKjjiWG1fVlQr6/exec"; // ganti dengan URL exec kamu
-let semuaData = [];
+const api = "https://script.google.com/macros/s/AKfycbztwQDuz2NWzbkVD6_bd_qqscJtG8OHNJITkiaGE2dEAPBw0XA9CJm2dqmyuVz3Qx3Nwg/exec"; // ganti dengan URL exec kamu
 let halaman = 1;
-const perHalaman = 50;
+let perHalaman = 50;
+let totalData = 0;
+let semuaData = [];
+
+async function ambilData(){
+  try {
+    document.getElementById("loading").style.display = "block";
+    const start = (halaman-1)*perHalaman + 1;
+    const response = await fetch(`${api}?start=${start}&limit=${perHalaman}`);
+    const result = await response.json();
+    semuaData = result.data;
+    totalData = result.total;
+    tampilkanData(semuaData);
+    document.getElementById("jumlah").textContent = totalData;
+    document.getElementById("pageInfo").textContent = `Halaman ${halaman} dari ${Math.ceil(totalData/perHalaman)}`;
+  } catch (error) {
+    console.error(error);
+    alert("Gagal mengambil data");
+  } finally {
+    document.getElementById("loading").style.display = "none";
+  }
+}
 
 function tampilkanData(data){
-  const mulai = (halaman-1)*perHalaman;
-  const akhir = mulai + perHalaman;
-  const potongan = data.slice(mulai, akhir);
-
-  let html = potongan.map(item => `
+  let html = data.map(item => `
     <tr>
       <td>${item.Nik || ""}</td>
       <td>${item.Nama || ""}</td>
@@ -66,24 +87,7 @@ function tampilkanData(data){
       <td>${item["Tingkat kerusakan"] || ""}</td>
       <td>${item.Keterangan || ""}</td>
     </tr>`).join("");
-
   document.getElementById("data").innerHTML = html;
-  document.getElementById("jumlah").textContent = data.length;
-  document.getElementById("pageInfo").textContent = `Halaman ${halaman} dari ${Math.ceil(data.length/perHalaman)}`;
-}
-
-async function ambilData(){
-  try {
-    document.getElementById("loading").style.display = "block";
-    const response = await fetch(api);
-    semuaData = await response.json();
-    tampilkanData(semuaData);
-  } catch (error) {
-    console.error(error);
-    alert("Gagal mengambil data");
-  } finally {
-    document.getElementById("loading").style.display = "none";
-  }
 }
 
 document.getElementById("cari").addEventListener("keyup", function(){
@@ -95,22 +99,27 @@ document.getElementById("cari").addEventListener("keyup", function(){
     String(item.Kecamatan || "").toLowerCase().includes(kata) ||
     String(item.Keterangan || "").toLowerCase().includes(kata)
   );
-  halaman = 1;
   tampilkanData(hasil);
 });
 
 document.getElementById("prev").addEventListener("click", function(){
   if(halaman > 1){
     halaman--;
-    tampilkanData(semuaData);
+    ambilData();
   }
 });
 
 document.getElementById("next").addEventListener("click", function(){
-  if(halaman < Math.ceil(semuaData.length/perHalaman)){
+  if(halaman < Math.ceil(totalData/perHalaman)){
     halaman++;
-    tampilkanData(semuaData);
+    ambilData();
   }
+});
+
+document.getElementById("perPage").addEventListener("change", function(){
+  perHalaman = parseInt(this.value);
+  halaman = 1;
+  ambilData();
 });
 
 ambilData();
