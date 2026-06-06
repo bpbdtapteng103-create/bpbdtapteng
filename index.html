@@ -4,125 +4,69 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>BPBD Kabupaten Tapanuli Tengah</title>
+
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+
 <style>
 body{font-family:Arial,sans-serif;margin:20px;}
 h1{color:#d35400;}
-input{width:100%;padding:10px;margin-bottom:15px;box-sizing:border-box;}
-table{width:100%;border-collapse:collapse;}
-th{background:#d35400;color:white;padding:10px;}
-td{padding:8px;border:1px solid #ddd;}
-tr:nth-child(even){background:#f2f2f2;}
-.info{margin-bottom:15px;font-weight:bold;}
-#loading{color:#555;margin-bottom:10px;}
-.pagination{margin-top:15px;}
-button{padding:8px 12px;margin:2px;}
 </style>
 </head>
 <body>
 <h1>BPBD Kabupaten Tapanuli Tengah</h1>
 <h3>Portal Data Rumah Rusak</h3>
 
-<input type="text" id="cari" placeholder="Cari Nama, NIK, Desa, Kecamatan, atau Keterangan">
-<div class="info">Jumlah Data : <span id="jumlah">0</span></div>
-<div id="loading" style="display:none;">Sedang mengambil data...</div>
-
-<table>
-<thead>
-<tr>
-  <th>NIK</th>
-  <th>Nama</th>
-  <th>Desa/Kelurahan</th>
-  <th>Kecamatan</th>
-  <th>Tingkat Kerusakan</th>
-  <th>Keterangan</th>
-</tr>
-</thead>
-<tbody id="data"></tbody>
+<table id="tabelData" class="display" style="width:100%">
+  <thead>
+    <tr>
+      <th>NIK</th>
+      <th>Nama</th>
+      <th>Desa/Kelurahan</th>
+      <th>Kecamatan</th>
+      <th>Tingkat Kerusakan</th>
+      <th>Keterangan</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
 </table>
 
-<div class="pagination">
-  <button id="prev">Prev</button>
-  <span id="pageInfo"></span>
-  <button id="next">Next</button>
-  <select id="perPage">
-    <option value="25">25</option>
-    <option value="50" selected>50</option>
-    <option value="100">100</option>
-  </select> baris per halaman
-</div>
+<!-- jQuery & DataTables JS -->
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<!-- PapaParse untuk parsing CSV -->
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <script>
-const api = "https://script.google.com/macros/s/AKfycbztwQDuz2NWzbkVD6_bd_qqscJtG8OHNJITkiaGE2dEAPBw0XA9CJm2dqmyuVz3Qx3Nwg/exec"; // ganti dengan URL exec kamu
-let halaman = 1;
-let perHalaman = 50;
-let totalData = 0;
-let semuaData = [];
+// Ganti dengan link CSV dari Google Sheets (Publish to Web)
+const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTAfzeR12tioe17bhHeiiphh55poTbX5gsteoIKQ8A7GYN2hOqORyVB05nhkmScijlzvchXBiELT_aI/pub?gid=2051195513&single=true&output=csv";
 
-async function ambilData(){
-  try {
-    document.getElementById("loading").style.display = "block";
-    const start = (halaman-1)*perHalaman + 1;
-    const response = await fetch(`${api}?start=${start}&limit=${perHalaman}`);
-    const result = await response.json();
-    semuaData = result.data;
-    totalData = result.total;
-    tampilkanData(semuaData);
-    document.getElementById("jumlah").textContent = totalData;
-    document.getElementById("pageInfo").textContent = `Halaman ${halaman} dari ${Math.ceil(totalData/perHalaman)}`;
-  } catch (error) {
-    console.error(error);
-    alert("Gagal mengambil data");
-  } finally {
-    document.getElementById("loading").style.display = "none";
-  }
-}
+Papa.parse(csvUrl, {
+  download: true,
+  header: true,
+  complete: function(results) {
+    const data = results.data;
+    const tbody = document.querySelector("#tabelData tbody");
 
-function tampilkanData(data){
-  let html = data.map(item => `
-    <tr>
-      <td>${item.Nik || ""}</td>
-      <td>${item.Nama || ""}</td>
-      <td>${item["Desa/kelurahan"] || ""}</td>
-      <td>${item.Kecamatan || ""}</td>
-      <td>${item["Tingkat kerusakan"] || ""}</td>
-      <td>${item.Keterangan || ""}</td>
-    </tr>`).join("");
-  document.getElementById("data").innerHTML = html;
-}
+    data.forEach(row => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${row.Nik || ""}</td>
+        <td>${row.Nama || ""}</td>
+        <td>${row["Desa/kelurahan"] || ""}</td>
+        <td>${row.Kecamatan || ""}</td>
+        <td>${row["Tingkat kerusakan"] || ""}</td>
+        <td>${row.Keterangan || ""}</td>
+      `;
+      tbody.appendChild(tr);
+    });
 
-document.getElementById("cari").addEventListener("keyup", function(){
-  const kata = this.value.toLowerCase();
-  const hasil = semuaData.filter(item =>
-    String(item.Nama || "").toLowerCase().includes(kata) ||
-    String(item.Nik || "").toLowerCase().includes(kata) ||
-    String(item["Desa/kelurahan"] || "").toLowerCase().includes(kata) ||
-    String(item.Kecamatan || "").toLowerCase().includes(kata) ||
-    String(item.Keterangan || "").toLowerCase().includes(kata)
-  );
-  tampilkanData(hasil);
-});
-
-document.getElementById("prev").addEventListener("click", function(){
-  if(halaman > 1){
-    halaman--;
-    ambilData();
+    // Aktifkan DataTables (pencarian + pagination otomatis)
+    $('#tabelData').DataTable({
+      pageLength: 25
+    });
   }
 });
-
-document.getElementById("next").addEventListener("click", function(){
-  if(halaman < Math.ceil(totalData/perHalaman)){
-    halaman++;
-    ambilData();
-  }
-});
-
-document.getElementById("perPage").addEventListener("change", function(){
-  perHalaman = parseInt(this.value);
-  halaman = 1;
-  ambilData();
-});
-
-ambilData();
 </script>
 </body>
 </html>
