@@ -1,170 +1,22 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<title>BPBD Kabupaten Tapanuli Tengah</title>
-
-<style>
-body{
-    font-family: Arial, sans-serif;
-    margin:20px;
-}
-
-h1{
-    color:#d35400;
-}
-
-input{
-    width:100%;
-    padding:10px;
-    margin-bottom:15px;
-    box-sizing:border-box;
-}
-
-table{
-    width:100%;
-    border-collapse:collapse;
-}
-
-th{
-    background:#d35400;
-    color:white;
-    padding:10px;
-}
-
-td{
-    padding:8px;
-    border:1px solid #ddd;
-}
-
-tr:nth-child(even){
-    background:#f2f2f2;
-}
-
-.info{
-    margin-bottom:15px;
-    font-weight:bold;
-}
-</style>
-
-</head>
-
-<body>
-
-<h1>BPBD Kabupaten Tapanuli Tengah</h1>
-<h3>Portal Data Rumah Rusak</h3>
-
-<input
-type="text"
-id="cari"
-placeholder="Cari Nama, NIK, Desa atau Kecamatan">
-
-<div class="info">
-Jumlah Data : <span id="jumlah">0</span>
-</div>
-
-<table>
-
-<thead>
-<tr>
-<th>NIK</th>
-<th>Nama</th>
-<th>Desa/Kelurahan</th>
-<th>Kecamatan</th>
-<th>Tingkat Kerusakan</th>
-</tr>
-</thead>
-
-<tbody id="data">
-</tbody>
-
-</table>
-
 <script>
 
-// GANTI DENGAN URL APPS SCRIPT ANDA
-const api = "https://script.google.com/macros/s/AKfycbxAYITzf6UtekGUZ6gtNdXMzTicQyQt0BV6GbwZOUte0gbrF1ax_kNaJcUba97rNl5Q/exec";
-
-let semuaData = [];
-
-function tampilkanData(data){
-
-    let html = "";
-
-    data.forEach(item => {
-
-        html += `
-        <tr>
-            <td>${item.Nik || ""}</td>
-            <td>${item.Nama || ""}</td>
-            <td>${item["Desa/kelurahan"] || ""}</td>
-            <td>${item.Kecamatan || ""}</td>
-            <td>${item["Tingkat kerusakan"] || ""}</td>
-        </tr>
-        `;
-
-    });
-
-    document.getElementById("data").innerHTML = html;
-    document.getElementById("jumlah").textContent = data.length;
-}
+const api = "PASTE_URL_APPS_SCRIPT_ANDA_DI_SINI";
 
 fetch(api)
-.then(response => response.json())
+.then(r => r.json())
 .then(data => {
 
-    semuaData = data;
+    console.log(data);
 
-    tampilkanData(data);
+    document.getElementById("data").innerHTML =
+        "<tr><td colspan='5'>" +
+        JSON.stringify(data[0], null, 2) +
+        "</td></tr>";
 
 })
-.catch(error => {
-    console.log(error);
-    alert("Gagal mengambil data");
-});
-
-document.getElementById("cari")
-.addEventListener("keyup", function(){
-
-    const kata = this.value.toLowerCase();
-
-    const hasil = semuaData.filter(item => {
-
-        return (
-
-            String(item.Nama || "")
-            .toLowerCase()
-            .includes(kata)
-
-            ||
-
-            String(item.Nik || "")
-            .toLowerCase()
-            .includes(kata)
-
-            ||
-
-            String(item["Desa/kelurahan"] || "")
-            .toLowerCase()
-            .includes(kata)
-
-            ||
-
-            String(item.Kecamatan || "")
-            .toLowerCase()
-            .includes(kata)
-
-        );
-
-    });
-
-    tampilkanData(hasil);
-
+.catch(err => {
+    document.getElementById("data").innerHTML =
+        "<tr><td colspan='5'>ERROR : " + err + "</td></tr>";
 });
 
 </script>
-
-</body>
-</html>
