@@ -1,60 +1,56 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>BPBD Kabupaten Tapanuli Tengah</title>
-</head>
-<body>
-
-<h1>Data Rumah Rusak</h1>
-
-<input type="text" id="cari" placeholder="Cari nama atau NIK">
-
-<table border="1" width="100%">
-<thead>
-<tr>
-<th>NIK</th>
-<th>Nama</th>
-<th>Desa/Kelurahan</th>
-<th>Kecamatan</th>
-<th>Kategori</th>
-</tr>
-</thead>
-
-<tbody id="data"></tbody>
-
-</table>
-
 <script>
 
-const api =
-"URL_APPS_SCRIPT_ANDA";
+const api = "URL_APPS_SCRIPT_ANDA";
+
+let semuaData = [];
+
+function tampilkanData(data) {
+
+  let html = "";
+
+  data.forEach(item => {
+
+    html += `
+      <tr>
+        <td>${item.NIK}</td>
+        <td>${item.Nama}</td>
+        <td>${item["Desa/Kelurahan"]}</td>
+        <td>${item.Kecamatan}</td>
+        <td>${item.Kategori}</td>
+      </tr>
+    `;
+
+  });
+
+  document.getElementById("data").innerHTML = html;
+}
 
 fetch(api)
-.then(r => r.json())
-.then(data => {
+  .then(r => r.json())
+  .then(data => {
 
-let html = "";
+    semuaData = data;
 
-data.forEach(item => {
+    tampilkanData(data);
 
-html += `
-<tr>
-<td>${item.NIK}</td>
-<td>${item.Nama}</td>
-<td>${item["Desa/Kelurahan"]}</td>
-<td>${item.Kecamatan}</td>
-<td>${item.Kategori}</td>
-</tr>
-`;
+  });
 
-});
+document.getElementById("cari")
+  .addEventListener("keyup", function() {
 
-document.getElementById("data").innerHTML = html;
+    const kata = this.value.toLowerCase();
 
-});
+    const hasil = semuaData.filter(item => {
+
+      return (
+        String(item.NIK).toLowerCase().includes(kata) ||
+        String(item.Nama).toLowerCase().includes(kata)
+      );
+
+    });
+
+    tampilkanData(hasil);
+
+  });
 
 </script>
-
-</body>
-</html>
