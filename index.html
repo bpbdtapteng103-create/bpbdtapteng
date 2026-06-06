@@ -14,6 +14,8 @@ td{padding:8px;border:1px solid #ddd;}
 tr:nth-child(even){background:#f2f2f2;}
 .info{margin-bottom:15px;font-weight:bold;}
 #loading{color:#555;margin-bottom:10px;}
+.pagination{margin-top:15px;}
+button{padding:8px 12px;margin:2px;}
 </style>
 </head>
 <body>
@@ -38,12 +40,24 @@ tr:nth-child(even){background:#f2f2f2;}
 <tbody id="data"></tbody>
 </table>
 
+<div class="pagination">
+  <button id="prev">Prev</button>
+  <span id="pageInfo"></span>
+  <button id="next">Next</button>
+</div>
+
 <script>
 const api = "https://script.google.com/macros/s/AKfycbwfnC4VJG3vE4n_dV50YwEc3aUFaplyN1eUTsHaARnyh7vqhpF73xuKjjiWG1fVlQr6/exec"; // ganti dengan URL exec kamu
 let semuaData = [];
+let halaman = 1;
+const perHalaman = 50;
 
 function tampilkanData(data){
-  let html = data.map(item => `
+  const mulai = (halaman-1)*perHalaman;
+  const akhir = mulai + perHalaman;
+  const potongan = data.slice(mulai, akhir);
+
+  let html = potongan.map(item => `
     <tr>
       <td>${item.Nik || ""}</td>
       <td>${item.Nama || ""}</td>
@@ -52,8 +66,10 @@ function tampilkanData(data){
       <td>${item["Tingkat kerusakan"] || ""}</td>
       <td>${item.Keterangan || ""}</td>
     </tr>`).join("");
+
   document.getElementById("data").innerHTML = html;
   document.getElementById("jumlah").textContent = data.length;
+  document.getElementById("pageInfo").textContent = `Halaman ${halaman} dari ${Math.ceil(data.length/perHalaman)}`;
 }
 
 async function ambilData(){
@@ -61,7 +77,6 @@ async function ambilData(){
     document.getElementById("loading").style.display = "block";
     const response = await fetch(api);
     semuaData = await response.json();
-    console.log(semuaData); // debug lihat JSON
     tampilkanData(semuaData);
   } catch (error) {
     console.error(error);
@@ -80,7 +95,22 @@ document.getElementById("cari").addEventListener("keyup", function(){
     String(item.Kecamatan || "").toLowerCase().includes(kata) ||
     String(item.Keterangan || "").toLowerCase().includes(kata)
   );
+  halaman = 1;
   tampilkanData(hasil);
+});
+
+document.getElementById("prev").addEventListener("click", function(){
+  if(halaman > 1){
+    halaman--;
+    tampilkanData(semuaData);
+  }
+});
+
+document.getElementById("next").addEventListener("click", function(){
+  if(halaman < Math.ceil(semuaData.length/perHalaman)){
+    halaman++;
+    tampilkanData(semuaData);
+  }
 });
 
 ambilData();
