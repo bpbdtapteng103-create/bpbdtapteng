@@ -13,6 +13,7 @@ th{background:#d35400;color:white;padding:10px;}
 td{padding:8px;border:1px solid #ddd;}
 tr:nth-child(even){background:#f2f2f2;}
 .info{margin-bottom:15px;font-weight:bold;}
+#loading{color:#555;margin-bottom:10px;}
 </style>
 </head>
 <body>
@@ -21,6 +22,7 @@ tr:nth-child(even){background:#f2f2f2;}
 
 <input type="text" id="cari" placeholder="Cari Nama, NIK, Desa, Kecamatan, atau Keterangan">
 <div class="info">Jumlah Data : <span id="jumlah">0</span></div>
+<div id="loading" style="display:none;">Sedang mengambil data...</div>
 
 <table>
 <thead>
@@ -37,9 +39,7 @@ tr:nth-child(even){background:#f2f2f2;}
 </table>
 
 <script>
-// GANTI dengan URL Web App Google Apps Script kamu
-const api = "https://script.google.com/macros/s/AKfycbzHgqgyrkDCTxde1Ic2cilxmgHg9jgMojUsh3FeEY6pFY_QC-0Z0DT__M7A4mtr5eB26w/exec"; 
-
+const api = "URL_EXEC_APPS_SCRIPT"; // ganti dengan URL exec kamu
 let semuaData = [];
 
 function tampilkanData(data){
@@ -58,12 +58,16 @@ function tampilkanData(data){
 
 async function ambilData(){
   try {
+    document.getElementById("loading").style.display = "block";
     const response = await fetch(api);
     semuaData = await response.json();
+    console.log(semuaData); // debug lihat JSON
     tampilkanData(semuaData);
   } catch (error) {
     console.error(error);
     alert("Gagal mengambil data");
+  } finally {
+    document.getElementById("loading").style.display = "none";
   }
 }
 
